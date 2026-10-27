@@ -1,0 +1,169 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Memory Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            padding: 30px 15px;
+        }
+
+        .chat-container {
+            max-width: 650px;
+            margin: auto;
+            background: white;
+            padding: 22px;
+            border-radius: 15px;
+            box-shadow: 0 4px 18px #0001;
+        }
+
+        h1 {
+            text-align: center;
+            color: #334155;
+        }
+
+        #messages {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            padding: 10px 12px;
+            margin: 8px 0;
+            border-radius: 10px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .user {
+            background: #dbeafe;
+            text-align: right;
+        }
+
+        .bot {
+            background: #f1f5f9;
+        }
+
+        form {
+            display: flex;
+            gap: 8px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            min-width: 0;
+        }
+
+        button {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        #status {
+            color: #64748b;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>AI Memory Chatbot</h1>
+        <div id="messages" aria-live="polite"></div>
+
+        <form id="chat-form">
+            <input
+                id="message-input"
+                type="text"
+                placeholder="Ask me anything..."
+                autocomplete="off"
+                required
+            >
+            <button id="send-button" type="submit">Send</button>
+        </form>
+
+        <p id="status">Ready to chat</p>
+    </div>
+
+    <script>
+        const messages = document.getElementById("messages");
+        const form = document.getElementById("chat-form");
+        const input = document.getElementById("message-input");
+        const button = document.getElementById("send-button");
+        const status = document.getElementById("status");
+
+        // Keep the same ID for this conversation
+        let conversationId = crypto.randomUUID();
+
+        function addMessage(text, sender) {
+            const item = document.createElement("div");
+            item.className = "message " + sender;
+            item.textContent = text;
+            messages.appendChild(item);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const message = input.value.trim();
+            if (!message) return;
+
+            addMessage(message, "user");
+            input.value = "";
+            button.disabled = true;
+            status.textContent = "AI is thinking...";
+
+            try {
+                const response = await fetch("/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        conversation_id: conversationId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Something went wrong.");
+                }
+
+                conversationId = data.conversation_id;
+                addMessage(data.reply, "bot");
+                status.textContent = "Reply received";
+            } catch (error) {
+                addMessage(error.message, "bot");
+                status.textContent = "Please try again";
+            } finally {
+                button.disabled = false;
+                input.focus();
+            }
+        });
+    </script>
+</body>
+</html>
