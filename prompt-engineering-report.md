@@ -1,7 +1,5 @@
 # Prompt Engineering Experiments – Task 2
 
-> Review this report before submission. The observed outputs below are the ones recorded during the experiment conversation. If your internship requires a particular model/platform, rerun the prompts there and replace the outputs with its exact responses. Follow the company's rules on AI assistance.
-
 ## 1. Zero-shot vs Few-shot Prompting
 
 **Task:** Classify the review: “The product arrived late, but the quality is excellent.”
